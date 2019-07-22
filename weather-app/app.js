@@ -1,17 +1,26 @@
-const request = require("request");
-const keys = require("./config/keys");
+const geocode = require("./utils/geocode");
+const forcast = require("./utils/forcast");
 
-const url = `https://api.darksky.net/forecast/${
-  keys.darkSkyKeys
-}/37.8267,-122.4233`;
-const url2 = `https://api.mapbox.com/geocoding/v5/mapbox.places/Los%20Angeles.json?access_token=${
-  keys.mapBoxKeys
-}`;
+const cityName = process.argv[2];
+if (!cityName) {
+  console.log("Please enter a city name");
+} else {
+  geocode(cityName, (error, response) => {
+    if (error) {
+      return console.log("error:" + error);
+    } else {
+      const { longitude, latitude, location } = response;
 
-request({ url: url, json: true }, (error, response) => {
-  console.log(response.body.currently);
-});
+      forcast(longitude, latitude, (error, data) => {
+        if (error) {
+          return console.log(error);
+        }
 
-request({ url: url2, json: true }, (error, response) => {
-  console.log(response.body.features[0].center);
-});
+        const temperature = data.temperature;
+        console.log(
+          `The current temperature in ${location} is ${temperature} degree`
+        );
+      });
+    }
+  });
+}
